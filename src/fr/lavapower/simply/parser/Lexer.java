@@ -7,7 +7,8 @@ import java.util.Arrays;
 
 public class Lexer
 {
-    public static String[][] symbols = new String[][] {{"", "[;]", ""}, {"", "[(]", ""}, {"", "[)]", ""}};
+    public static String[] allsymbols = new String[] { ";", "(", ")", "'", "\""};
+    public static String[][] symbols = new String[][] {{"", "[;]", ""}, {"", "[(]", ""}, {"", "[)]", ""}, {"", "[']", ""}, {"", "[\"]", ""}};
     public static String[] others_symbols = new String[] {};
 
     public static ArrayList<Token> tokenize(String program) {
@@ -26,10 +27,45 @@ public class Lexer
                         tokens.add(new Token(lexical_unit, TokenType.PAREN_CLOSE));
                         break;
                     case "print":
+                    case "println":
                         tokens.add(new Token(lexical_unit, TokenType.KEYWORD));
                         break;
                     case ";":
                         tokens.add(new Token(lexical_unit, TokenType.SEMI_COLON));
+                        break;
+                    case "\"":
+                        StringBuilder textDouble = new StringBuilder();
+                        lexical_unit = lexical_units.remove(0);
+                        while(!lexical_unit.equals("\"")) {
+                            if(textDouble.length() == 0)
+                                textDouble.append(lexical_unit);
+                            else
+                                textDouble.append(" ").append(lexical_unit);
+                            if(lexical_units.size() == 0)
+                                new Error("SyntaxError", "Unexpected End Of Program. Missing '\"'");
+                            lexical_unit = lexical_units.remove(0);
+                        }
+                        String stringDouble = textDouble.toString();
+                        for(String symbol: allsymbols)
+                            stringDouble = stringDouble.replace(" "+symbol+" ", symbol);
+                        tokens.add(new Token(stringDouble, TokenType.STRING));
+                        break;
+                    case "'":
+                        StringBuilder textSimple = new StringBuilder();
+                        lexical_unit = lexical_units.remove(0);
+                        while(!lexical_unit.equals("'")) {
+                            if(textSimple.length() == 0)
+                                textSimple.append(lexical_unit);
+                            else
+                                textSimple.append(" ").append(lexical_unit);
+                            if(lexical_units.size() == 0)
+                                new Error("SyntaxError", "Unexpected End Of Program. Missing \"'\"");
+                            lexical_unit = lexical_units.remove(0);
+                        }
+                        String stringSimple = textSimple.toString();
+                        for(String symbol: allsymbols)
+                            stringSimple = stringSimple.replace(" "+symbol+" ", symbol);
+                        tokens.add(new Token(stringSimple, TokenType.STRING));
                         break;
                     default:
                         try {

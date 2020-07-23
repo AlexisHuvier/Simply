@@ -6,5 +6,6 @@ public enum TokenType
     INTEGER,
     PAREN_OPEN,
     PAREN_CLOSE,
-    SEMI_COLON;
+    SEMI_COLON,
+    STRING;
 }

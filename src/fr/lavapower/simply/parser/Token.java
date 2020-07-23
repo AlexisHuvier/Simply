@@ -5,7 +5,7 @@ public class Token
     private final String value;
     private final TokenType type;
 
-    protected Token(String value, TokenType type)
+    public Token(String value, TokenType type)
     {
         this.value = value;
         this.type = type;

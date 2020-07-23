@@ -2,7 +2,10 @@ package fr.lavapower.simply.parser;
 
 import fr.lavapower.simply.Error;
 import fr.lavapower.simply.instructions.Instruction;
-import fr.lavapower.simply.instructions.PrintNumber;
+import fr.lavapower.simply.instructions.PrintExpression;
+import fr.lavapower.simply.instructions.PrintlnExpression;
+import fr.lavapower.simply.objects.Expression;
+import fr.lavapower.simply.objects.ExpressionType;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -58,7 +61,9 @@ public class Parser
         forwardCursor("keyword");
         if(current.getType() == TokenType.KEYWORD) {
             if(current.getValue().equals("print"))
-                printStatement();
+                functionStatement(current.getValue());
+            else if(current.getValue().equals("println"))
+                functionStatement(current.getValue());
             else
                 syntaxError("Unknown keyword.");
         }
@@ -66,23 +71,42 @@ public class Parser
             syntaxError( "Expected keyword.");
     }
 
-    private static void printStatement() {
+    private static void functionStatement(String function) {
         forwardCursor("open parenthesis");
         if(current.getType() == TokenType.PAREN_OPEN) {
-            forwardCursor("number");
-            if(current.getType() == TokenType.INTEGER) {
-                instructions.add(new PrintNumber(Integer.parseInt(current.getValue())));
+            Expression expression = expression();
+            if(expression == null) {
+                if(current.getType() != TokenType.PAREN_CLOSE)
+                    syntaxError("Expected close parenthesis or Expression");
+            }
+            else
+            {
+                if(function.equals("print"))
+                    instructions.add(new PrintExpression(expression));
+                else if(function.equals("println"))
+                    instructions.add(new PrintlnExpression(expression));
                 forwardCursor("close parenthesis");
                 if(current.getType() != TokenType.PAREN_CLOSE)
                     syntaxError("Expected close parenthesis");
-                forwardCursor("semi colon");
-                if(current.getType() != TokenType.SEMI_COLON)
-                    syntaxError("Expected semi colon");
             }
-            else
-                syntaxError("Expected Number");
+            forwardCursor("semi colon");
+            if(current.getType() != TokenType.SEMI_COLON)
+                syntaxError("Expected semi colon");
         }
         else
             syntaxError("Expected open parenthesis");
+    }
+
+    private static Expression expression() {
+        forwardCursor("close parenthesis");
+        return simpleExpression();
+    }
+
+    private static Expression simpleExpression() {
+        if(current.getType() == TokenType.INTEGER)
+            return new Expression(current.getValue(), ExpressionType.INT);
+        else if(current.getType() == TokenType.STRING)
+            return new Expression(current.getValue(), ExpressionType.STRING);
+        return null;
     }
 }
