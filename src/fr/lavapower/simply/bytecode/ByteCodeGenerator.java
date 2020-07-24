@@ -1,6 +1,7 @@
 package fr.lavapower.simply.bytecode;
 
 import fr.lavapower.simply.instructions.Instruction;
+import fr.lavapower.simply.parser.Parser;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.MethodVisitor;
 import jdk.internal.org.objectweb.asm.Opcodes;
@@ -21,7 +22,7 @@ public class ByteCodeGenerator implements Opcodes
                 instruction.apply(mv);
             }
             mv.visitInsn(RETURN);
-            mv.visitMaxs(maxStack, 1);
+            mv.visitMaxs(maxStack, Parser.getVariablesCount());
             mv.visitEnd();
         }
         cw.visitEnd();

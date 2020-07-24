@@ -1,5 +1,5 @@
-print(-56);
-print(2);
-println(2);
-println("dl bla ()");
-println('lolz pla');
+a = 2;
+println(a);
+b = a;
+a = 3;
+println(b);

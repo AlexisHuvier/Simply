@@ -7,5 +7,7 @@ public enum TokenType
     PAREN_OPEN,
     PAREN_CLOSE,
     SEMI_COLON,
+    EGAL,
+    IDENTIFIER,
     STRING;
 }

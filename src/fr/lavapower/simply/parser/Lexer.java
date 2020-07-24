@@ -7,8 +7,8 @@ import java.util.Arrays;
 
 public class Lexer
 {
-    public static String[] allsymbols = new String[] { ";", "(", ")", "'", "\""};
-    public static String[][] symbols = new String[][] {{"", "[;]", ""}, {"", "[(]", ""}, {"", "[)]", ""}, {"", "[']", ""}, {"", "[\"]", ""}};
+    public static String[] allsymbols = new String[] { ";", "(", ")", "'", "\"", "="};
+    public static String[][] symbols = new String[][] {{"", "[;]", ""}, {"", "[(]", ""}, {"", "[)]", ""}, {"", "[']", ""}, {"", "[\"]", ""}, {"", "[=]", ""}};
     public static String[] others_symbols = new String[] {};
 
     public static ArrayList<Token> tokenize(String program) {
@@ -25,6 +25,9 @@ public class Lexer
                         break;
                     case ")":
                         tokens.add(new Token(lexical_unit, TokenType.PAREN_CLOSE));
+                        break;
+                    case "=":
+                        tokens.add(new Token(lexical_unit, TokenType.EGAL));
                         break;
                     case "print":
                     case "println":
@@ -73,7 +76,10 @@ public class Lexer
                             tokens.add(new Token(lexical_unit, TokenType.INTEGER));
                         }
                         catch(NumberFormatException ignored) {
-                            new Error("SyntaxError", "Token Unknown.\n - Text : "+lexical_unit);
+                            if(lexical_unit.matches("[a-zA-Z][a-zA-Z0-9]*"))
+                                tokens.add(new Token(lexical_unit, TokenType.IDENTIFIER));
+                            else
+                                new Error("SyntaxError", "Token Unknown.\n - Text : "+lexical_unit);
                         };
                 }
             }

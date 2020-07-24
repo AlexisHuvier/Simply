@@ -4,11 +4,14 @@ import fr.lavapower.simply.Error;
 import fr.lavapower.simply.instructions.Instruction;
 import fr.lavapower.simply.instructions.PrintExpression;
 import fr.lavapower.simply.instructions.PrintlnExpression;
+import fr.lavapower.simply.instructions.VariableDeclaration;
 import fr.lavapower.simply.objects.Expression;
 import fr.lavapower.simply.objects.ExpressionType;
+import fr.lavapower.simply.objects.Variable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Queue;
 
 public class Parser
@@ -17,9 +20,11 @@ public class Parser
     private static int cursor;
     private static Token current;
     private static Queue<Instruction> instructions;
+    private static HashMap<String, Variable> variables;
 
     public static Queue<Instruction> parse(String program) {
         instructions = new ArrayDeque<>();
+        variables = new HashMap<>();
         tokens = Lexer.tokenize(program);
         cursor = -1;
         current = null;
@@ -43,7 +48,7 @@ public class Parser
     }
 
     private static void syntaxError(String message) {
-        new Error("SyntaxError", message+"\n - Token : "+current+"\n - Cursor : "+cursor);
+        new Error("SyntaxError", message+"\n - Token : "+current+"\n - Cursor : "+cursor+"\n - Tokens : "+tokens);
     }
 
     //Parsing
@@ -58,7 +63,7 @@ public class Parser
     }
 
     private static void statement() {
-        forwardCursor("keyword");
+        forwardCursor("keyword or identifier");
         if(current.getType() == TokenType.KEYWORD) {
             if(current.getValue().equals("print"))
                 functionStatement(current.getValue());
@@ -67,8 +72,35 @@ public class Parser
             else
                 syntaxError("Unknown keyword.");
         }
+        else if(current.getType() == TokenType.IDENTIFIER) {
+            varStatement();
+        }
         else
-            syntaxError( "Expected keyword.");
+            syntaxError( "Expected keyword or identifier.");
+    }
+
+    private static void varStatement() {
+        String var = current.getValue();
+        forwardCursor("egal");
+        if(current.getType() != TokenType.EGAL)
+            syntaxError("Expected egal");
+        Expression expression = expression();
+        if(expression == null)
+            syntaxError("Expected expression");
+        else
+        {
+            Variable variable = new Variable(variables.size(), expression.getValue(), expression.getType());
+            if(variables.containsKey(var)) {
+                variable = new Variable(variables.get(var).getID(), expression.getValue(), expression.getType());
+                variables.replace(var, variable);
+            }
+            else
+                variables.put(var, variable);
+            instructions.add(new VariableDeclaration(variable));
+            forwardCursor("semi colon");
+            if(current.getType() != TokenType.SEMI_COLON)
+                syntaxError("Expected semi colon");
+        }
     }
 
     private static void functionStatement(String function) {
@@ -98,7 +130,7 @@ public class Parser
     }
 
     private static Expression expression() {
-        forwardCursor("close parenthesis");
+        forwardCursor("Expression");
         return simpleExpression();
     }
 
@@ -107,6 +139,25 @@ public class Parser
             return new Expression(current.getValue(), ExpressionType.INT);
         else if(current.getType() == TokenType.STRING)
             return new Expression(current.getValue(), ExpressionType.STRING);
+        else if(current.getType() == TokenType.IDENTIFIER) {
+            if(variables.containsKey(current.getValue())) {
+                Variable variable = variables.get(current.getValue());
+                if(variable.getType() == ExpressionType.INT)
+                    return new Expression(variable.getID()+"-int", ExpressionType.VARIABLE);
+                else if(variable.getType() == ExpressionType.STRING)
+                    return new Expression(variable.getID()+"-string", ExpressionType.VARIABLE);
+                else if(variable.getType() == ExpressionType.VARIABLE) {
+                    String[] values = variable.getValue().split("-");
+                    return new Expression(variable.getID()+"-"+values[1], ExpressionType.VARIABLE);
+                }
+            }
+            else
+                new Error("IdentifierError", "Unknown Indentifier.\n - Identifier : "+current.getValue());
+        }
         return null;
+    }
+
+    public static int getVariablesCount() {
+        return variables.size();
     }
 }

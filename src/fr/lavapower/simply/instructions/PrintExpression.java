@@ -26,5 +26,16 @@ public class PrintExpression implements Instruction, Opcodes
             methodVisitor.visitLdcInsn(expression.getValue());
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V", false);
         }
+        else if(expression.getType() == ExpressionType.VARIABLE) {
+            String[] values = expression.getValue().split("-");
+            if(values[1].equals("int")) {
+                methodVisitor.visitVarInsn(ILOAD, Integer.parseInt(values[0]));
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(I)V", false);
+            }
+            else if(values[1].equals("string")) {
+                methodVisitor.visitVarInsn(ALOAD, Integer.parseInt(values[0]));
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V", false);
+            }
+        }
     }
 }
